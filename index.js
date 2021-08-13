@@ -1,8 +1,5 @@
 const express = require('express');
 const app = express();
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const nodemailer = require('./config/nodemailer.config')
 const usersRouter = require('./routes/users.routes');
 const productsRouter = require('./routes/products.routes');
 const experiencesRouter = require('./routes/experiences.routes');
@@ -19,7 +16,9 @@ app.use(express.static("wwww"));
 
 app.get('/', (req, res) => {
 
- console.log(req.headers)
+ //console.log(req.headers)
+
+  res.status(200).send({message: 'Aplicación corriendo'})
 
 })
 

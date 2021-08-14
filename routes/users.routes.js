@@ -4,10 +4,10 @@ const userControllers = require('../controllers/users.controllers');
 const router = express.Router();
 
 router.post('/register', userControllers.userRegister);
-router.get('/login', userControllers.userLogin);
+router.post('/login', userControllers.userLogin);
 router.get('/confirm/:confirmationCode', userControllers.userConfirmation);
-router.get('/ResetPassword', userControllers.userResetPassword);
-router.post('/newPassword/:resetCode', userControllers.userConfirmation);
+router.post('/ResetPassword', userControllers.userResetPassword);
+//router.post('/newPassword/:resetCode', userControllers.userConfirmation);
 router.get('/getInfo', checkAuth, userControllers.getInfo);
 router.get('/getImage', checkAuth, userControllers.getImage);
 router.put('/updateInfo', checkAuth, userControllers.updateInfo);

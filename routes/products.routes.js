@@ -6,6 +6,6 @@ const router = express.Router();
 router.get('/categoryProducts', productsControllers.categoryProducts);
 router.get('/searchProducts', productsControllers.searchProducts);
 router.get('/image/:productID/:imageID', productsControllers.productImage);
-router.get('/info', productsControllers.productInfo);
+router.get('/info/:productID', productsControllers.productInfo);
 
 module.exports = router

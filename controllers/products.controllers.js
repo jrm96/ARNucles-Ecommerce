@@ -42,7 +42,7 @@ const categoryProducts = (req, res) => {
 
 const searchProducts = (req, res) => {
     try {
-        let searchText = req.body.searchText
+        let searchText = req.query.searchText
         if (!searchText){
             return res.status(400).send({message : 'Se requiere texto de búsqueda.'})
         }
@@ -90,7 +90,7 @@ const productImage = (req, res) => {
 
 const productInfo = (req, res) => {
     try {
-        const productID = req.body.productID
+        const productID = req.params.productID
         if (!productID){
             return res.status(400).send({message : 'Ha ocurrido un error.'})
         }

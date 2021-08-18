@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const host = process.env.HOST;
+const user = process.env.EMAIL_USER
 
 const transport = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -10,7 +11,7 @@ const transport = nodemailer.createTransport({
   secure: true,
   auth: {
     type: 'OAuth2',
-    user: process.env.EMAIL_USER,
+    user: user,
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
     refreshToken: process.env.REFRESH_TOKEN,

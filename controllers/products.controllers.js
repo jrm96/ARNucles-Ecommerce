@@ -10,7 +10,7 @@ const categoryProducts = (req, res) => {
                         'product_name', p.product_name ,
                         'product_price', p.product_price,
                         'image', coalesce((select 'https://' ||$1 || '/products/image/' || i.product::varchar(20) || '/' || i.image_id::varchar(100) from product_images i where p.product_id = i.product limit 1),''),
-                        'experience_url', coalesce('https://' ||$1 || '/products/getModel/' || p.product_id::varchar(20) || '/' || pe.experience_model, ''),
+                        'experience_url', coalesce('https://' ||$1 || '/experiences/getModel/' || p.product_id::varchar(20) || '/' || pe.experience_model, ''),
                         'model_width', coalesce(pe.width, 0),
                         'model_long', coalesce(pe.long, 0),
                         'model_height', coalesce(pe.height,0)
@@ -49,7 +49,7 @@ const searchProducts = (req, res) => {
         searchText = `\\y${searchText}\\y`
         pool.query(`SELECT distinct on (p.product_id) 
         p.product_id, p.product_name, p.product_price, coalesce((select 'https://' ||$2 || '/products/image/' || i.product::varchar(20) || '/' || i.image_id::varchar(100) from product_images i where p.product_id = i.product limit 1),'') as image,
-        coalesce('https://' ||$2 || '/products/getModel/' || p.product_id::varchar(20) || '/' || pe.experience_model, '') as experience_url, coalesce(pe.width, 0) as model_width, coalesce(pe.long, 0) as model_long, coalesce(pe.height,0) as model_height 
+        coalesce('https://' ||$2 || '/experiences/getModel/' || p.product_id::varchar(20) || '/' || pe.experience_model, '') as experience_url, coalesce(pe.width, 0) as model_width, coalesce(pe.long, 0) as model_long, coalesce(pe.height,0) as model_height 
         FROM products p 
         left join product_experience pe 
         on p.product_id = pe.product 

@@ -23,11 +23,11 @@ const sendConfirmationEmail = (name, email, confirmationCode) => {
     transport.sendMail({
       from: user,
       to: email,
-      subject: "Please confirm your account",
-      html: `<h1>Email Confirmation</h1>
-          <h2>Hello ${name}</h2>
-          <p>Thank you for subscribing. Please confirm your email by clicking on the following link</p>
-          <a href=http://${host}/users/confirm/${confirmationCode}> Click here</a>
+      subject: "Por favor confirma tu correo.",
+      html: `<h1>Confirmación de Email</h1>
+          <h2>Hola ${name}</h2>
+          <p>Gracias por registrarte en el Ecommerce de AR Nucleus. Por favor confirma tu correo haciendo click en el siguiente enlace.</p>
+          <a href=http://${host}/users/confirm/${confirmationCode}> Click aquí.</a>
           </div>`,
     }).catch(err => console.log(err));
   };

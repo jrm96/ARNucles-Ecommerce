@@ -4,22 +4,22 @@ dotenv.config();
 
 const getModel = (req, res) => {
     try {
-        const productID = req.params.productID
-        const modelName = req.params.modelName        
+        const productID = req.params.productID;
+        const modelName = req.params.modelName;
         if (!(modelName && productID)){
-            return res.status(400).send({message : 'Se requiere nombre de imagen y producto.'})
+            return res.status(400).send({message : 'Se requiere nombre de imagen y producto.'});
         }
-        filePath = `./media/products/${productID}/model/`
+        filePath = `./media/products/${productID}/model/`;
         res.status(200).sendFile(modelName, { root: filePath }, function (err) {
             if (err) {
-                res.status(400).send("No se ha encontrado el modelo. Vuelva a intentar o contacte con soporte.");
+                res.status(400).send({message: "No se ha encontrado el modelo. Vuelva a intentar o contacte con soporte."});
             } else {
-                saveView(req)
+                saveView(req);
             }
           })
     } catch (err) {
         console.log(err);
-        res.status(400).send("Ha ocurrido un error inesperado. Vuelva a intentar o contacte con soporte.");
+        res.status(400).send({message: "Ha ocurrido un error inesperado. Vuelva a intentar o contacte con soporte."});
     }
 }
 

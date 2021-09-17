@@ -4,7 +4,8 @@ const nodemailer = require('../config/nodemailer.config')
 const pool = require('../config/database.config')
 const dotenv = require('dotenv');
 const validator = require("email-validator");
- 
+const format = require('pg-format');
+
 dotenv.config();
 
 const userLogin = (req, res) => {
@@ -423,7 +424,176 @@ const removeItemCart = (req, res) => {
                 if (error) {
                     res.status(400).send({ message: "Ha ocurrido un error al eliminar producto." });
                 } else {
-                    res.status(201).send({message: `Producto removido de Lista de deseos.`});
+                    res.status(200).send({message: `Producto removido de Lista de deseos.`});
+                }
+            })
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+const addTags = (req, res) => {
+    try {
+        const email = req.user.email;
+        const tags = JSON.parse(req.body.tags);
+
+        // Validate user input
+        if (!(email && tags)) {
+            res.status(400).send({message: "Todos los campos son requeridos"});
+        } else {
+            let userTags = []
+            for (let tag of tags){
+                userTags.push([email, tag])
+            } 
+            pool.query(`delete from user_tags where user_email = $1;`, 
+            [email], (error, results) => {
+                if (error) {
+                    res.status(400).send({ message: "Ha ocurrido un error al agregar tags." });
+                } else {
+                    pool.query(format(`insert into user_tags (user_email, tag_id) VALUES %L`, userTags), 
+                    [], (error, results) => {
+                        if (error) {
+                            res.status(400).send({ message: "Ha ocurrido un error al agregar tags." });
+                        } else {
+                            res.status(201).send({message: `Tags añadidos.`});
+                        }
+                    })
+                }
+            })
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(400).send({ message: "Ha ocurrido un error al agregar tags." });
+    }
+}
+
+const getTags = (req, res) => {
+    try {
+        const email = req.user.email;
+
+        // Validate user input
+        if (!email) {
+            res.status(400).send({message: "No se puede obtener usuario"});
+        } else {
+            pool.query(
+                `select CASE WHEN ut.tag_id is null THEN 0 ELSE 1 END as active, 
+                t.*
+                from tags t 
+                left join (select * from user_tags u where u.user_email = $1) ut 
+                on t.tag_id = ut.tag_id `, 
+            [email], (error, results) => {
+                if (error) {
+                    res.status(400).send({ message: "No se ha podido obtener Tags." });
+                } else {
+                    if (results.rowCount == 0) {
+                        res.status(204).send({message: 'No hay productos en Tags.'}); 
+                    } else {
+                        tags = {tags: results.rows}
+                        res.status(200).send(tags)
+                    }
+                }
+            })
+        }
+    } catch (err) {
+        console.log(err);
+        res.status(400).send({ message: "No se ha podido obtener Tags." });
+    }
+}
+
+
+const addDeliveryPlace = (req, res) => {
+    try {
+        const email = req.user.email;
+        const active = req.body.active;
+        const country = req.body.country;
+        const line1 = req.body.line1;
+        const line2 = req.body.line2;
+        const line3 = req.body.line3;
+        const state = req.body.state;
+        const city = req.body.city;
+
+        // Validate user input
+        if (!(email && active && country && line1 && line2 && line3 && state && city)) {
+            res.status(400).send({message: "Todos los campos son requeridos."});
+        } else if (active != 1 && active != 0){
+            res.status(400).send({message : "Formato inválido de campos"});
+        }
+        else {
+            pool.query(`INSERT INTO public."Delivery"
+            (email, active, country, line_1, line_2, line_3, state, city)
+            VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+            returning delivery_id;`, 
+            [email, active, country, line1, line2, line3, state, city], (error, results) => {
+                if (error) {
+                    console.log(error.stack)
+                    res.status(400).send({ message: "Ha ocurrido un error al agregar lugar de envío." });
+                } else {
+                    onlyActiveDelivery(email, results.rows[0].delivery_id, active)
+                    res.status(201).send({message: `Lugar de envío añadido.`});
+                }
+            })
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+const getDeliveryPlaces = (req, res) => {
+    try {
+        const email = req.user.email;
+
+        // Validate user input
+        if (!email) {
+            res.status(400).send({message: "No se puede obtener usuario"});
+        } else {
+            pool.query(`select c.*, s2.state_name, c2."name" as country_name, s.email, s.active, s.line_1, s.line_2, s.line_3, s.delivery_id
+            from "Delivery" s 
+            inner join city c 
+            on ((s.country = c.country_id) and (s.state = c.state_id) and (s.city = c.city_id))
+            inner join state s2 
+            on ((s.state = s2.state_id) and (s2.country_id = s2.country_id))
+            inner join country c2 
+            on (s.country = c2.id)
+            where email = $1`, [email], (error, results) => {
+                if (error) {
+                    res.status(400).send({ message: "No se ha podido obtener Carrito." });
+                } else {
+                    if (results.rowCount == 0) {
+                        res.status(204).send({message: 'No hay lugares de envío creados.'}); 
+                    } else {
+                        
+                        delivery = {delivery: results.rows}
+                        res.status(200).send(delivery)
+                    }
+                }
+            })
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+const removeDeliveryPlace = (req, res) => {
+    try {
+        const email = req.user.email;
+        const deliveryID = req.body.deliveryID
+
+        // Validate user input
+        if (!(email && deliveryID)) {
+            res.status(400).send("Todos los campos son requeridos");
+        } else {
+            pool.query(`DELETE FROM public."Delivery"
+            WHERE email = $1 AND delivery_id = $2 RETURNING active;`, [email, deliveryID], (error, results) => {
+                if (error) {
+                    res.status(400).send({ message: "Ha ocurrido un error al eliminar Lugar de entrega." });
+                } else {
+                    if (results.rowCount != 0){
+                        removedDelivery(email, results.rows[0].active);
+                        res.status(200).send({message: `Lugar de entrega removido.`});    
+                    } else {
+                        res.status(202).send({message: `Lugar de entrega no encontrado.`});    
+                    }
                 }
             })
         }
@@ -459,6 +629,27 @@ function saveResetCode(resetCode, email) {
     })
 }
 
+function removedDelivery(email, active){
+    if (active == 1){
+        pool.query(`UPDATE "Delivery"
+        SET active = True
+        WHERE delivery_id IN (SELECT delivery_id
+            FROM "Delivery"
+            WHERE email = $1
+            LIMIT 1);`, 
+        [email], (error, results) => {})
+    }
+}
+
+function onlyActiveDelivery(email, id, active){
+    if (active == 1){
+        pool.query(`UPDATE public."Delivery"
+            SET active=false
+            WHERE email = $1 AND delivery_id != $2;`, 
+            [email, id], (error, results) => {})
+    }
+}
+
 module.exports = {
     userLogin,
     userRegister,
@@ -474,4 +665,9 @@ module.exports = {
     addToCart,
     getCart,
     removeItemCart,
+    addDeliveryPlace,
+    getDeliveryPlaces,
+    removeDeliveryPlace,
+    addTags,
+    getTags,
 }
